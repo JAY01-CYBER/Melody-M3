@@ -43,7 +43,31 @@ fun MelodyM3App() {
                         isLoading = homeUiState.isLoading,
                         errorMessage = homeUiState.errorMessage
                     )
-                    // ... (Other screens) ...
+                    // ... (Existing Imports) ...
+import com.melodym3.ui.components.NowPlayingBar // <-- New Import
+
+@Composable
+fun MelodyM3App() {
+    var selectedItem by remember { mutableIntStateOf(0) }
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val homeUiState = homeViewModel.uiState 
+
+    MelodyM3Theme {
+        Scaffold(
+            // Bottom Bar में Navigation Bar और Now Playing Bar को Column में रखें
+            bottomBar = { 
+                Column {
+                    NowPlayingBar() // <-- 1. Now Playing Bar
+                    AppNavigationBar(selectedItem) { index -> selectedItem = index } // <-- 2. Navigation
+                }
+            }
+        ) { paddingValues ->
+            // ... (Content remains the same) ...
+        }
+    }
+}
+// ... (Other Composables remain the same) ...
+
                 }
             }
         }
