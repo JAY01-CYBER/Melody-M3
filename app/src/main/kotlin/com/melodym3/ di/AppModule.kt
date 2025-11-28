@@ -1,5 +1,34 @@
 package com.melodym3.di
 
+import android.content.Context
+import androidx.media3.exoplayer.ExoPlayer
+// ... (Existing Imports) ...
+import dagger.hilt.android.qualifiers.ApplicationContext // Context Import
+// ...
+
+@Module
+@InstallIn(SingletonComponent::class) 
+object AppModule {
+    
+    // ... (Existing provideOkHttpClient, provideRetrofit, provideYTMService) ...
+    
+    // --- New: Provide ExoPlayer (Singleton) ---
+    @Provides
+    @Singleton
+    fun provideExoPlayer(@ApplicationContext context: Context): ExoPlayer {
+        return ExoPlayer.Builder(context)
+            .build()
+            .apply {
+                // 
+                // setMediaItem(MediaItem.fromUri("..."))
+            }
+    }
+    
+    // ... (Existing provideMusicRepository) ...
+}
+
+package com.melodym3.di
+
 import com.melodym3.data.repository.MockMusicRepositoryImpl
 import com.melodym3.domain.repository.MusicRepository
 import dagger.Module
@@ -14,17 +43,17 @@ object AppModule {
 
     /**
      * Provides the concrete implementation of the MusicRepository interface.
-     * Hilt अब इस फ़ंक्शन को कॉल करेगा जब कोई MusicRepository मांगता है।
+     * 
      */
     @Provides
     @Singleton
     fun provideMusicRepository(
-        // Hilt अब MockMusicRepositoryImpl को स्वचालित रूप से इंजेक्ट करेगा
+        // Hilt अब MockMusicRepositoryImpl 
         mockRepo: MockMusicRepositoryImpl 
     ): MusicRepository {
         return mockRepo
     }
     
-    // Note: Use Case को यहाँ Provides करने की आवश्यकता नहीं है, 
-    // क्योंकि हमने उसमें @Inject constructor लगा दिया है।
+    //
+    // 
 }
