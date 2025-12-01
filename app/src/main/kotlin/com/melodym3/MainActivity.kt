@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -14,14 +15,15 @@ import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.melodym3.ui.components.NowPlayingBar // Assuming this is defined
 import com.melodym3.ui.screens.ExploreScreen
 import com.melodym3.ui.screens.HomeScreen
+import com.melodym3.ui.screens.LibraryScreen // <-- NEW: Integrated Library Screen
 import com.melodym3.ui.screens.home.HomeViewModel
-import com.melodym3.ui.screens.player.PlayerScreen // The full screen modal player
+import com.melodym3.ui.screens.player.PlayerScreen
 import com.melodym3.ui.theme.MelodyM3Theme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -34,7 +36,7 @@ sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.ve
 
 val items = listOf(Screen.Home, Screen.Explore, Screen.Library)
 
-// --- 2. Main Activity Entry Point ---
+// --- 2. Main Activity Entry Point (Hilt Annotation) ---
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +55,7 @@ fun MelodyM3App() {
     // State for showing the full screen modal player
     var isPlayerScreenVisible by remember { mutableStateOf(false) } 
 
-    // Inject and observe the HomeViewModel (also triggers initialization)
+    // Inject and observe the HomeViewModel
     val homeViewModel: HomeViewModel = hiltViewModel()
     val homeUiState = homeViewModel.uiState 
 
@@ -81,13 +83,13 @@ fun MelodyM3App() {
                         }
                     )
                     Screen.Explore -> ExploreScreen() 
-                    Screen.Library -> Text("Library Screen Placeholder")
+                    // Integrated LibraryScreen using Firestore data
+                    Screen.Library -> LibraryScreen() 
                 }
             }
             
-            // 4. Full Screen Player Modal
+            // 4. Full Screen Player Modal (Displayed over all content)
             if (isPlayerScreenVisible) {
-                // PlayerScreen opens on top of all content
                 PlayerScreen(onDismiss = { isPlayerScreenVisible = false }) 
             }
         }
@@ -111,11 +113,11 @@ fun AppNavigationBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
     }
 }
 
-// NOTE: NowPlayingBar definition must be updated in its file to accept onClick
+// --- 6. Now Playing Bar Component (Updated to accept click) ---
 @Composable
 fun NowPlayingBar(onClick: () -> Unit) { 
     Surface(
-        // Placeholder for real elevated design
+        // Use elevation for the expensive design look
         shadowElevation = 8.dp,
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         modifier = Modifier.fillMaxWidth()
@@ -127,8 +129,9 @@ fun NowPlayingBar(onClick: () -> Unit) {
                 .height(64.dp)
                 .clickable { onClick() }
                 .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart // Use Box for simple centering
+            contentAlignment = Alignment.CenterStart
         ) {
+            // Placeholder content - In a real app, this would show current song info
             Text("Now Playing... (Tap to expand)", style = MaterialTheme.typography.bodyMedium)
         }
     }
