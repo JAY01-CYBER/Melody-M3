@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.melodym3.domain.model.MusicItem
 import com.melodym3.domain.playback.PlaybackController
 import com.melodym3.domain.usecase.GetHomeRecommendationsUseCase
+import com.melodym3.service.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,8 +23,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getHomeRecommendationsUseCase: GetHomeRecommendationsUseCase,
-    // NEW: Inject the PlaybackController to start playing music
-    private val playbackController: PlaybackController 
+    private val playbackController: PlaybackController, // Injected for playback initiation
+    private val snackbarManager: SnackbarManager // Injected for user feedback (Step 22)
 ) : ViewModel() {
 
     var uiState by mutableStateOf(HomeUiState())
@@ -47,11 +48,17 @@ class HomeViewModel @Inject constructor(
                     recommendations = items,
                     isLoading = false
                 )
+                // SUCCESS Feedback: Use SnackbarManager
+                if (items.isNotEmpty()) {
+                    snackbarManager.showMessage("Recommendations refreshed!")
+                }
             }.onFailure { error ->
                 uiState = uiState.copy(
                     errorMessage = error.message ?: "Failed to load music data.",
                     isLoading = false
                 )
+                // FAILURE Feedback: Use SnackbarManager
+                snackbarManager.showMessage("Error: Could not load data.")
             }
         }
     }
@@ -63,6 +70,6 @@ class HomeViewModel @Inject constructor(
     fun playItem(item: MusicItem) {
         // This initiates the stream URL fetching and playback process in the background
         playbackController.play(item)
-        println("Playback initiated for: ${item.title}")
+        snackbarManager.showMessage("Starting playback: ${item.title}")
     }
 }
