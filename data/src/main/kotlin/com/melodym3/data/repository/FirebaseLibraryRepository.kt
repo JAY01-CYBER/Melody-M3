@@ -1,5 +1,6 @@
 package com.melodym3.data.repository
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.melodym3.domain.model.LikedTrack
 import com.melodym3.service.FirebaseService
@@ -17,6 +18,8 @@ class FirebaseLibraryRepository @Inject constructor(
     private val COLLECTION_LIKED_TRACKS = "liked_tracks"
 
     private suspend fun getCollectionRef(db: FirebaseFirestore) = run {
+        // Ensure authentication is done before fetching collection path
+        firebaseService.authenticateUser()
         val path = firebaseService.getPrivateUserCollectionPath(COLLECTION_LIKED_TRACKS)
         if (path != null) db.collection(path) else null
     }
@@ -31,7 +34,7 @@ class FirebaseLibraryRepository @Inject constructor(
         if (collectionRef == null) return Result.failure(Exception("User not authenticated or App ID missing."))
 
         return try {
-            // Use the track ID as the document ID for easy lookup and replacement
+            // Use the track ID as the document ID for easy lookup
             collectionRef.document(track.id).set(track).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -40,9 +43,24 @@ class FirebaseLibraryRepository @Inject constructor(
     }
 
     /**
-     * Gets a real-time stream of the user's entire liked track library.
-     * NOTE: This is a simplified flow for initial data fetching.
-     * In production, this should use a proper callbackFlow to handle real-time snapshots.
+     * Removes a track from the user's personal library.
+     */
+    suspend fun removeTrack(trackId: String): Result<Unit> { // <-- NEW FUNCTION
+        val db = firebaseService.getFirestore()
+        val collectionRef = getCollectionRef(db)
+        
+        if (collectionRef == null) return Result.failure(Exception("User not authenticated or App ID missing."))
+
+        return try {
+            collectionRef.document(trackId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Gets a real-time stream of the user's entire liked track library (simplified flow).
      */
     fun getLikedTracks(): Flow<List<LikedTrack>> = flow {
         // Ensure authentication is completed before fetching data
@@ -65,7 +83,6 @@ class FirebaseLibraryRepository @Inject constructor(
             emit(tracks)
         } catch (e: Exception) {
             Log.e("LibraryRepo", "Error fetching liked tracks: ${e.message}")
-            // Emit empty list on failure
             emit(emptyList()) 
         }
     }
