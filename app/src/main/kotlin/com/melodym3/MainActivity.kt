@@ -6,12 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +30,7 @@ import com.melodym3.ui.screens.HomeScreen
 import com.melodym3.ui.screens.LibraryScreen
 import com.melodym3.ui.screens.home.HomeViewModel
 import com.melodym3.ui.screens.player.PlayerScreen
+import com.melodym3.ui.screens.player.PlayerViewModel
 import com.melodym3.ui.theme.MelodyM3Theme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -57,13 +63,13 @@ class MainActivity : ComponentActivity() {
 
 // --- 3. Main Application Composable ---
 @Composable
-fun MelodyM3App(snackbarManager: SnackbarManager) { // <-- Manager Parameter
+fun MelodyM3App(snackbarManager: SnackbarManager) { 
     // State for bottom navigation
     var selectedItem by remember { mutableIntStateOf(0) }
     // State for showing the full screen modal player
     var isPlayerScreenVisible by remember { mutableStateOf(false) } 
 
-    // Inject and observe the HomeViewModel (needed for initial data/playback setup)
+    // Inject and observe the HomeViewModel (for initial data/playback setup)
     val homeViewModel: HomeViewModel = hiltViewModel()
     val homeUiState = homeViewModel.uiState 
     
@@ -88,7 +94,7 @@ fun MelodyM3App(snackbarManager: SnackbarManager) { // <-- Manager Parameter
             // Bottom bar contains the Now Playing bar AND the Navigation Bar
             bottomBar = { 
                 Column {
-                    // Click on NowPlayingBar opens the full player modal
+                    // Mini-Player: Click opens the full player modal
                     NowPlayingBar(onClick = { isPlayerScreenVisible = true }) 
                     AppNavigationBar(selectedItem) { index -> selectedItem = index } 
                 }
@@ -107,7 +113,6 @@ fun MelodyM3App(snackbarManager: SnackbarManager) { // <-- Manager Parameter
                         }
                     )
                     Screen.Explore -> ExploreScreen() 
-                    // Integrated LibraryScreen using Firestore data
                     Screen.Library -> LibraryScreen() 
                 }
             }
@@ -137,26 +142,65 @@ fun AppNavigationBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
     }
 }
 
-// --- 6. Now Playing Bar Component ---
+// --- 6. Now Playing Bar Component (State-driven Mini-Player) ---
 @Composable
 fun NowPlayingBar(onClick: () -> Unit) { 
+    // Inject the PlayerViewModel to get real-time state
+    val playerViewModel: PlayerViewModel = hiltViewModel()
+    val state by playerViewModel.playerState.collectAsState()
+    
+    // Mini-player only appears if a song is loaded (current item is not null)
+    if (state.currentItem == null) {
+        return 
+    }
+
     Surface(
-        // Use elevation for the expensive design look
         shadowElevation = 8.dp,
         color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // The clickable modifier ensures the entire bar responds to taps
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .clickable { onClick() }
+                // Clicking the entire row opens the full player
+                .clickable { onClick() } 
                 .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Placeholder content - In a real app, this would show current song info
-            Text("Now Playing... (Tap to expand)", style = MaterialTheme.typography.bodyMedium)
+            // 1. Song Info (Text)
+            Column(
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text(
+                    state.currentItem?.title ?: "Unknown Track",
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                Text(
+                    state.currentItem?.subtitle ?: "Unknown Artist",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+            
+            // 2. Play/Pause Button
+            IconButton(
+                onClick = { 
+                    playerViewModel.togglePlaybackFromMiniPlayer()
+                }
+            ) {
+                Icon(
+                    imageVector = if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (state.isPlaying) "Pause" else "Play",
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
