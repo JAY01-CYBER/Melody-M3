@@ -12,12 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.melodym3.ui.theme.MelodyM3Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +26,6 @@ fun PlayerScreen(
     val state by viewModel.playerState.collectAsState()
     val item = state.currentItem
 
-    // Use a large M3 Surface for the background
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -36,7 +33,7 @@ fun PlayerScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Top Bar (Dismiss Button)
+            // 1. Top Bar (Dismiss Button & Like Button)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -45,7 +42,26 @@ fun PlayerScreen(
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Minimize Player")
                 }
-                Text("Now Playing", style = MaterialTheme.typography.titleMedium)
+                
+                // Title and Like Button Row
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Now Playing", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    // Like/Unlike Button Logic
+                    IconButton(onClick = viewModel::toggleLikeStatus) { // <-- CALLS VIEWMODEL
+                        val icon = if (state.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                        // Use M3 error color for the 'Liked' state (red heart)
+                        val tint = if (state.isLiked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        
+                        Icon(
+                            icon, 
+                            contentDescription = "Toggle Like Status", 
+                            tint = tint
+                        )
+                    }
+                }
+                
                 // Placeholder for overflow menu
                 IconButton(onClick = { /* More actions */ }) {
                     Icon(Icons.Default.MoreVert, contentDescription = "More")
