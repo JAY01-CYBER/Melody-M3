@@ -8,6 +8,8 @@ import com.melodym3.data.repository.RealMusicRepositoryImpl
 import com.melodym3.domain.playback.PlaybackController
 import com.melodym3.domain.repository.MusicRepository
 import com.melodym3.service.MediaPlaybackController
+import com.melodym3.service.SnackbarManager // <-- New Import (Step 22)
+import com.melodym3.service.FirebaseService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,7 +51,6 @@ object AppModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         // NOTE: Replace this with the actual URL of your Unofficial YTM Backend/Proxy.
-        // This server must handle the scraping of YouTube Music data.
         val BASE_URL = "https://your-ytm-proxy-backend.com/api/v1/" 
         
         return Retrofit.Builder()
@@ -98,12 +99,33 @@ object AppModule {
     
     /**
      * Provides the PlaybackController interface implemented by MediaPlaybackController.
-     * This handles communication between UI and the Media Session Service.
      */
     @Provides
     @Singleton
     fun providePlaybackController(controller: MediaPlaybackController): PlaybackController {
         return controller 
     }
-}
 
+    // ===========================================
+    // 4. FIREBASE AND UTILITY SERVICES
+    // ===========================================
+
+    /**
+     * Provides the FirebaseService singleton for authentication and database access.
+     */
+    @Provides
+    @Singleton
+    fun provideFirebaseService(service: FirebaseService): FirebaseService {
+        // FirebaseService's init{} block handles initialization and authentication
+        return service
+    }
+    
+    /**
+     * Provides the SnackbarManager singleton for global UI message handling. (Step 22)
+     */
+    @Provides
+    @Singleton
+    fun provideSnackbarManager(manager: SnackbarManager): SnackbarManager {
+        return manager
+    }
+}
