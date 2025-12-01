@@ -19,13 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.melodym3.service.SnackbarManager
 import com.melodym3.ui.screens.ExploreScreen
 import com.melodym3.ui.screens.HomeScreen
-import com.melodym3.ui.screens.LibraryScreen // <-- NEW: Integrated Library Screen
+import com.melodym3.ui.screens.LibraryScreen
 import com.melodym3.ui.screens.home.HomeViewModel
 import com.melodym3.ui.screens.player.PlayerScreen
 import com.melodym3.ui.theme.MelodyM3Theme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // --- 1. Navigation Definitions ---
 sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
@@ -39,28 +42,49 @@ val items = listOf(Screen.Home, Screen.Explore, Screen.Library)
 // --- 2. Main Activity Entry Point (Hilt Annotation) ---
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    // Inject the SnackbarManager at the activity level (Step 22)
+    @Inject
+    lateinit var snackbarManager: SnackbarManager 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MelodyM3App()
+            // Pass the injected manager to the composable function
+            MelodyM3App(snackbarManager = snackbarManager) 
         }
     }
 }
 
 // --- 3. Main Application Composable ---
 @Composable
-fun MelodyM3App() {
+fun MelodyM3App(snackbarManager: SnackbarManager) { // <-- Manager Parameter
     // State for bottom navigation
     var selectedItem by remember { mutableIntStateOf(0) }
     // State for showing the full screen modal player
     var isPlayerScreenVisible by remember { mutableStateOf(false) } 
 
-    // Inject and observe the HomeViewModel
+    // Inject and observe the HomeViewModel (needed for initial data/playback setup)
     val homeViewModel: HomeViewModel = hiltViewModel()
     val homeUiState = homeViewModel.uiState 
+    
+    // Snackbar Host State (Step 22)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Listener for messages coming from the ViewModel/Repository layer (Step 22)
+    LaunchedEffect(snackbarManager) {
+        snackbarManager.messages.collect { message ->
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(message)
+            }
+        }
+    }
 
     MelodyM3Theme {
         Scaffold(
+            // Set up the SnackbarHost
+            snackbarHost = { SnackbarHost(snackbarHostState) }, 
+            
             // Bottom bar contains the Now Playing bar AND the Navigation Bar
             bottomBar = { 
                 Column {
@@ -113,7 +137,7 @@ fun AppNavigationBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
     }
 }
 
-// --- 6. Now Playing Bar Component (Updated to accept click) ---
+// --- 6. Now Playing Bar Component ---
 @Composable
 fun NowPlayingBar(onClick: () -> Unit) { 
     Surface(
