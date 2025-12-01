@@ -1,4 +1,4 @@
-// app/build.gradle.kts
+package com.melodym3.app
 
 plugins {
     id("com.android.application")
@@ -56,18 +56,19 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.8.1")
     
     // --- 3. Compose (Material 3 & UI) ---
+    // Import Compose BOM to manage versions consistently
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-window-size-class")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-extended") // For icons
 
     // --- 4. Hilt (Dependency Injection) ---
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0") // For hiltViewModel()
 
     // --- 5. Image Loading (Coil) ---
     implementation("io.coil-kt:coil-compose:2.5.0")
@@ -81,6 +82,9 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx") // Firestore database
     implementation("com.google.firebase:firebase-auth-ktx")     // Authentication
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3") // Coroutines support for Firebase tasks
+    
+    // --- 8. Coroutines (General purpose) ---
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") 
     
     // Testing Dependencies
     testImplementation("junit:junit:4.13.2")
