@@ -5,15 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.melodym3.data.repository.YouTubeRepository
+import com.melodym3.domain.model.Song
 import com.melodym3.domain.model.MusicItem
 import com.melodym3.domain.playback.PlaybackController
-import com.melodym3.domain.usecase.GetHomeRecommendationsUseCase
 import com.melodym3.service.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Define the state of the Home Screen
 data class HomeUiState(
     val recommendations: List<MusicItem> = emptyList(),
     val isLoading: Boolean = true,
@@ -22,9 +22,9 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getHomeRecommendationsUseCase: GetHomeRecommendationsUseCase,
-    private val playbackController: PlaybackController, // Injected for playback initiation
-    private val snackbarManager: SnackbarManager // Injected for user feedback (Step 22)
+    private val playbackController: PlaybackController,
+    private val snackbarManager: SnackbarManager,
+    private val youTubeRepository: YouTubeRepository          // ← Naya add
 ) : ViewModel() {
 
     var uiState by mutableStateOf(HomeUiState())
@@ -34,42 +34,46 @@ class HomeViewModel @Inject constructor(
         loadRecommendations()
     }
 
-    /**
-     * Fetches recommendations from the use case and updates the UI state.
-     */
-    fun loadRecommendations() {
+    private fun loadRecommendations() {
         uiState = uiState.copy(isLoading = true, errorMessage = null)
-        
+
         viewModelScope.launch {
-            val result = getHomeRecommendationsUseCase()
-            
-            result.onSuccess { items ->
+            try {
+                // Real YouTube se songs la rahe hain
+                val songs: List<Song> = youTubeRepository.searchSongs("trending india")
+
                 uiState = uiState.copy(
-                    recommendations = items,
+                    recommendations = songs.map {
+                        MusicItem(
+                            id = it.id,
+                            title = it.title,
+                            subtitle = it.subtitle,
+                            thumbnailUrl = it.thumbnail
+                            // agar MusicItem mein aur fields hain to yahan add kar dena
+                        )
+                    },
                     isLoading = false
                 )
-                // SUCCESS Feedback: Use SnackbarManager
-                if (items.isNotEmpty()) {
-                    snackbarManager.showMessage("Recommendations refreshed!")
-                }
-            }.onFailure { error ->
+                snackbarManager.showMessage("Loaded ${songs.size} trending songs!")
+            } catch (e: Exception) {
                 uiState = uiState.copy(
-                    errorMessage = error.message ?: "Failed to load music data.",
-                    isLoading = false
+                    isLoading = false,
+                    errorMessage = "Check internet connection"
                 )
-                // FAILURE Feedback: Use SnackbarManager
-                snackbarManager.showMessage("Error: Could not load data.")
+                snackbarManager.showMessage("Failed to load songs")
             }
         }
     }
-    
-    /**
-     * Public function called when a Music Item is clicked in the UI.
-     * It delegates the action to the PlaybackController.
-     */
+
     fun playItem(item: MusicItem) {
-        // This initiates the stream URL fetching and playback process in the background
-        playbackController.play(item)
-        snackbarManager.showMessage("Starting playback: ${item.title}")
+        viewModelScope.launch {
+            playbackController.playItem(item)
+            snackbarManager.showMessage("Now playing: ${item.title}")
+        }
+    }
+
+    // Agar refresh button daalna chahe to
+    fun refresh() {
+        loadRecommendations()
     }
 }
