@@ -3,7 +3,7 @@ name: Build Melody M3 APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:   # ← ye manual run ke liye hai
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,14 +18,27 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK to Artifacts
+      # ← YE SECTION SABSE ZAROORI — ISSE APK MIL HI JAYEGA
+      - name: Find APK (just in case path alag ho)
+        run: |
+          echo "Searching for APK..."
+          find . -name "*.apk" -type f || echo "No APK found yet"
+          find . -name "*.apk" -type f
+
+      - name: Copy APK to root (for sure upload)
+        run: |
+          mkdir -p artifacts
+          find . -name "*.apk" -type f -exec cp {} artifacts/ \;
+          ls -la artifacts/
+
+      - name: Upload All APKs
         uses: actions/upload-artifact@v4
         with:
-          name: Melody-M3-Debug-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: Melody-Mdbe3-APK-Final
+          path: artifacts/*.apk
