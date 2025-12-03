@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.melodym3.data.repository.YouTubeRepository
 import com.melodym3.domain.model.Song
-import com.melodym3.domain.model.MusicItem
 import com.melodym3.domain.playback.PlaybackController
 import com.melodym3.service.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
-    val recommendations: List<MusicItem> = emptyList(),
+    val recommendations: List<Song> = emptyList(),   // ← Song use kar rahe hain
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
@@ -24,7 +23,7 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     private val playbackController: PlaybackController,
     private val snackbarManager: SnackbarManager,
-    private val youTubeRepository: YouTubeRepository          // ← Naya add
+    private val youTubeRepository: YouTubeRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf(HomeUiState())
@@ -39,19 +38,9 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Real YouTube se songs la rahe hain
-                val songs: List<Song> = youTubeRepository.searchSongs("trending india")
-
+                val songs = youTubeRepository.searchSongs("trending india")
                 uiState = uiState.copy(
-                    recommendations = songs.map {
-                        MusicItem(
-                            id = it.id,
-                            title = it.title,
-                            subtitle = it.subtitle,
-                            thumbnailUrl = it.thumbnail
-                            // agar MusicItem mein aur fields hain to yahan add kar dena
-                        )
-                    },
+                    recommendations = songs,   // ← direct Song list daal rahe hain
                     isLoading = false
                 )
                 snackbarManager.showMessage("Loaded ${songs.size} trending songs!")
@@ -65,14 +54,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun playItem(item: MusicItem) {
+    fun playItem(song: Song) {
         viewModelScope.launch {
-            playbackController.playItem(item)
-            snackbarManager.showMessage("Now playing: ${item.title}")
+            playbackController.playItem(song)
+            snackbarManager.showMessage("Now playing: ${song.title}")
         }
     }
 
-    // Agar refresh button daalna chahe to
     fun refresh() {
         loadRecommendations()
     }
