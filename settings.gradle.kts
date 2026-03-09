@@ -11,9 +11,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }  // Keep only if you use JitPack libs
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 rootProject.name = "Melody-M3"
 include(":app")
+include(":data")
+include(":domain")
+include(":ui")
