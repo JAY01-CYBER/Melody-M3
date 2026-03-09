@@ -1,15 +1,4 @@
-name: Build Melody M3 APK
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      name: Build APK
+name: Build APK
 
 on:
   push:
