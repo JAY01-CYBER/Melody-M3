@@ -1,23 +1,37 @@
-// data/build.gradle.kts
-
 plugins {
-    kotlin("jvm")
-    kotlin("kapt") // Hilt and Retrofit compiler processing के लिए
+    id("com.android.library")           // Use "com.android.library" for modules like :ui, :data
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "com.melodym3.data"       // IMPORTANT: Change this to match your actual package
+                                        // Check app/src/main/AndroidManifest.xml or Kotlin files
+                                        // Examples:
+                                        // - For :ui module: "com.melodym3.ui"
+                                        // - For :data: "com.melodym3.data"
+                                        // - For :domain: "com.melodym3.domain" (if it's Android lib)
+
+    compileSdk = 34
+
+    defaultConfig {
+        minSdk = 24
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
-    // Dependency on Domain module
-    implementation(project(":domain"))
-
-    // Networking - Retrofit and OkHttp
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0") 
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    
-    // Hilt integration for data layer
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-android-compiler:2.48")
-    
-    // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    // Add your dependencies here, e.g.:
+    // implementation("androidx.core:core-ktx:1.13.1")
+    // implementation("androidx.appcompat:appcompat:1.7.0")
+    // If using Compose:
+    // implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    // implementation("androidx.compose.data:data")
 }
