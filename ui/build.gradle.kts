@@ -13,7 +13,6 @@ android {
     defaultConfig {
         minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildFeatures {
@@ -46,10 +45,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Coil
+    // Image Loading
     implementation("io.coil-kt:coil-compose:2.6.0")
-
-    // Core
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
 }
