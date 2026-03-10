@@ -1,9 +1,13 @@
+// Path: ui/build.gradle.kts (Module Level)
+// This file applies the plugins and adds UI specific dependencies.
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
-    // Kotlin 2.0+ ke liye ye plugin mandatory hai Compose chalane ke liye
+    
+    // Applying the Compose plugin defined in the root file
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -18,11 +22,12 @@ android {
     }
 
     buildFeatures {
+        // Enable Jetpack Compose
         compose = true
     }
 
-    // Note: Kotlin 2.0+ mein 'composeOptions' block ki zarurat nahi padti
-    // kyunki Compose Compiler ab Kotlin ka hissa hai.
+    // Note: 'composeOptions' block is no longer needed for Kotlin 2.0+
+    // The compose plugin above handles the compiler logic.
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,16 +40,16 @@ android {
 }
 
 dependencies {
-    // Apne doosre modules ko connect karna
+    // Project dependencies
     implementation(project(":domain"))
     implementation(project(":data"))
 
-    // Hilt Dependency Injection (UI module ke liye zaruri)
+    // Hilt (Dependency Injection) for UI components
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Jetpack Compose Libraries
+    // Jetpack Compose with Bill of Materials (BOM)
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -53,10 +58,10 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Coil (Images load karne ke liye)
+    // Coil for loading images from URLs
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Android Core & AppCompat
+    // Android Core libraries
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 }
