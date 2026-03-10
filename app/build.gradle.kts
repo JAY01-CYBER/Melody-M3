@@ -1,10 +1,11 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.melodym3"  // Confirm this matches AndroidManifest.xml package
+    namespace = "com.melodym3"
     compileSdk = 34
 
     defaultConfig {
@@ -38,27 +39,14 @@ android {
 }
 
 dependencies {
-    // Your modules
-    implementation(project(":data"))
     implementation(project(":domain"))
+    implementation(project(":data"))
     implementation(project(":ui"))
 
-    // Core deps
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-
-    // Force modern replacements for legacy transitive deps
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.viewpager2:viewpager2:1.1.0")
-    implementation("androidx.transition:transition:1.5.0")
-    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-
-    // Exclude old legacy support to prevent conflict - FIXED SYNTAX HERE
-    configurations.all {
-        resolutionStrategy {
-            exclude(group = "androidx.legacy")
-            exclude(group = "com.android.support")
-        }
-    }
+    
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.52")
 }
