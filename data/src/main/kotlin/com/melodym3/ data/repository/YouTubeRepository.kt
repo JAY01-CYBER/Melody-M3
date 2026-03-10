@@ -1,43 +1,38 @@
 package com.melodym3.data.repository
 
-import com.melodym3.domain.model.Song
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.schabi.newpipe.extractor.NewPipe
-import org.schabi.newpipe.extractor.ServiceList
-import org.schabi.newpipe.extractor.stream.StreamInfo
+import com.melodym3.data.remote.YTMService
+import com.melodym3.data.remote.model.MusicItemDto
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class YouTubeRepository @Inject constructor() {
-
-    init {
-        NewPipe.init(org.schabi.newpipe.extractor.downloader.Downloader.getInstance())
+class YouTubeRepository @Inject constructor(
+    private val api: YTMService
+) {
+    suspend fun searchSongs(query: String): kotlin.Result<List<MusicItemDto>> {
+        return try {
+            val response = api.searchSongs(query)
+            kotlin.Result.success(response)
+        } catch (e: Exception) {
+            kotlin.Result.failure(e)
+        }
     }
 
-    suspend fun searchSongs(query: String): List<Song> = withContext(Dispatchers.IO) {
-        val searchResult = ServiceList.YouTube.search(query).get()
-        searchResult.items
-            .filter { it is org.schabi.newpipe.extractor.search.SearchResult.SearchItem.Video }
-            .take(20)
-            .map { item ->
-                Song(
-                    id = item.id,
-                    title = item.name,
-                    subtitle = item.uploaderName ?: "Unknown Artist",
-                    thumbnail = item.thumbnails.bestPreviewUrl,
-                    duration = item.duration?.toMillis()?.let {
-                        String.format("%d:%02d", it / 60000, (it % 60000) / 1000)
-                    } ?: "0:00"
-                )
-            }
+    suspend fun getHomeRecommendations(): kotlin.Result<List<MusicItemDto>> {
+        return try {
+            val response = api.getHomeRecommendations()
+            kotlin.Result.success(response)
+        } catch (e: Exception) {
+            kotlin.Result.failure(e)
+        }
     }
 
-    suspend fun getStreamUrl(videoId: String): String = withContext(Dispatchers.IO) {
-        val info = StreamInfo.getInfo("https://youtube.com/watch?v=$videoId")
-        info.audioStreams
-            .maxByOrNull { it.bitrate ?: 0 }
-            ?.url ?: ""
+    suspend fun getStreamUrl(videoId: String): kotlin.Result<String> {
+        return try {
+            val response = api.getStreamUrl(videoId)
+            kotlin.Result.success(response.url ?: "")
+        } catch (e: Exception) {
+            kotlin.Result.failure(e)
+        }
     }
 }
