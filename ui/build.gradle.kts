@@ -1,11 +1,8 @@
-// Path: ui/build.gradle.kts (UI Module)
-
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
-    // Apply the compose plugin here
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -46,15 +43,13 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Android Core
+    // Core
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 }
