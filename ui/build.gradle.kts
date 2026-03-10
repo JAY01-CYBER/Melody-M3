@@ -19,6 +19,7 @@ android {
     }
 
     composeOptions {
+        // Kotlin 1.9.24 compatibility
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
@@ -36,18 +37,22 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
 
-    // Hilt - Essential for @AndroidEntryPoint screens
+    // Hilt - Essential for screens using @AndroidEntryPoint or hiltViewModel
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Compose
+    // Jetpack Compose Libraries
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
+    // Image Loading with Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Android Core
     implementation("androidx.core:core-ktx:1.13.1")
 }
