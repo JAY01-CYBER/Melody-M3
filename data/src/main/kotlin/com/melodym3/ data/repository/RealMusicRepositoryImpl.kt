@@ -4,9 +4,6 @@ import com.melodym3.data.remote.YTMService
 import com.melodym3.data.remote.model.MusicItemDto
 import javax.inject.Inject
 
-/**
- * Implementation cleaned from NewPipe and Schabi references.
- */
 class RealMusicRepositoryImpl @Inject constructor(
     private val api: YTMService
 ) {
