@@ -1,67 +1,62 @@
 package com.melodym3.ui.screens.home
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.melodym3.data.repository.YouTubeRepository
-import com.melodym3.domain.model.Song
-import com.melodym3.domain.playback.PlaybackController
-import com.melodym3.service.SnackbarManager
+import com.melodym3.domain.model.MusicItem
+import com.melodym3.ui.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class HomeUiState(
-    val recommendations: List<Song> = emptyList(),   // ← Song use kar rahe hain
-    val isLoading: Boolean = true,
+data class HomeState(
+    val isLoading: Boolean = false,
+    val recommendations: List<MusicItem> = emptyList(),
     val errorMessage: String? = null
 )
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    private val playbackController: PlaybackController,
-    private val snackbarManager: SnackbarManager,
-    private val youTubeRepository: YouTubeRepository
-) : ViewModel() {
+class HomeViewModel @Inject constructor() : ViewModel() {
 
-    var uiState by mutableStateOf(HomeUiState())
-        private set
+    private val _state = MutableStateFlow(HomeState())
+    val state = _state.asStateFlow()
 
     init {
-        loadRecommendations()
+        loadHomeData()
     }
 
-    private fun loadRecommendations() {
-        uiState = uiState.copy(isLoading = true, errorMessage = null)
-
+    private fun loadHomeData() {
         viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val songs = youTubeRepository.searchSongs("trending india")
-                uiState = uiState.copy(
-                    recommendations = songs,   // ← direct Song list daal rahe hain
-                    isLoading = false
+                val mockItems = listOf(
+                    MusicItem(
+                        id = "1", 
+                        title = "Trending Now", 
+                        subtitle = "Various Artists", 
+                        imageUrl = "https://via.placeholder.com/150"
+                    )
                 )
-                snackbarManager.showMessage("Loaded ${songs.size} trending songs!")
+                
+                _state.update { 
+                    it.copy(
+                        isLoading = false, 
+                        recommendations = mockItems 
+                    ) 
+                }
             } catch (e: Exception) {
-                uiState = uiState.copy(
-                    isLoading = false,
-                    errorMessage = "Check internet connection"
+                _state.update { it.copy(isLoading = false) }
+                SnackbarManager.showError(
+                    message = e.message ?: "An unexpected error occurred",
+                    scope = viewModelScope
                 )
-                snackbarManager.showMessage("Failed to load songs")
             }
         }
     }
 
-    fun playItem(song: Song) {
-        viewModelScope.launch {
-            playbackController.playItem(song)
-            snackbarManager.showMessage("Now playing: ${song.title}")
-        }
-    }
-
-    fun refresh() {
-        loadRecommendations()
+    fun playItem(item: MusicItem) {
+        // Playback logic here
     }
 }
