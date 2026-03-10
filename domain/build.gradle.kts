@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.20"  // Version root se match kar (ya root mein declare hai to remove version)
+    kotlin("jvm") 
 }
 
 java {
