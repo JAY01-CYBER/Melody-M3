@@ -4,7 +4,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -24,6 +23,11 @@ android {
         compose = true
     }
 
+    composeOptions {
+        // Essential: Version 1.5.14 is required for Kotlin 1.9.24
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -35,16 +39,15 @@ android {
 }
 
 dependencies {
-    // Project Modules
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":ui"))
 
-    // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-compiler:2.52")
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
 
-    // Material Components (Fixes resource linking errors)
+    // Material
     implementation("com.google.android.material:material:1.11.0")
 
     // Firebase
@@ -52,7 +55,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
-    // Jetpack Compose
+    // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
