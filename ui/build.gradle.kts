@@ -1,13 +1,11 @@
-// Path: ui/build.gradle.kts (Module Level)
-// This file applies the plugins and adds UI specific dependencies.
+// Path: ui/build.gradle.kts (UI Module)
 
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
-    
-    // Applying the Compose plugin defined in the root file
+    // Apply the compose plugin here
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -22,12 +20,8 @@ android {
     }
 
     buildFeatures {
-        // Enable Jetpack Compose
         compose = true
     }
-
-    // Note: 'composeOptions' block is no longer needed for Kotlin 2.0+
-    // The compose plugin above handles the compiler logic.
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -40,16 +34,15 @@ android {
 }
 
 dependencies {
-    // Project dependencies
     implementation(project(":domain"))
     implementation(project(":data"))
 
-    // Hilt (Dependency Injection) for UI components
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Jetpack Compose with Bill of Materials (BOM)
+    // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -58,10 +51,10 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Coil for loading images from URLs
+    // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Android Core libraries
+    // Android Core
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 }
