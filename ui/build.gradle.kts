@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
+    // Kotlin 2.0+ ke liye ye plugin mandatory hai Compose chalane ke liye
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -19,9 +21,8 @@ android {
         compose = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1" // Apne Compose version ke hisaab se set karein
-    }
+    // Note: Kotlin 2.0+ mein 'composeOptions' block ki zarurat nahi padti
+    // kyunki Compose Compiler ab Kotlin ka hissa hai.
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -34,15 +35,16 @@ android {
 }
 
 dependencies {
+    // Apne doosre modules ko connect karna
     implementation(project(":domain"))
-    implementation(project(":data")) // UI ko data models chahiye honge
+    implementation(project(":data"))
 
-    // Hilt (Missing earlier in UI)
+    // Hilt Dependency Injection (UI module ke liye zaruri)
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Jetpack Compose
+    // Jetpack Compose Libraries
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -51,10 +53,10 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Coil (Image loading ke liye)
+    // Coil (Images load karne ke liye)
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Core Android
+    // Android Core & AppCompat
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
 }
