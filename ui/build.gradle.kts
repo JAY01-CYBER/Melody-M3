@@ -33,7 +33,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
 
-    // Hilt
+    // Hilt - Yeh line miss hone se 'NonExistentClass' error aata hai
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
@@ -45,7 +45,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Image Loading
+    // Coil & Core
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.core:core-ktx:1.13.1")
 }
