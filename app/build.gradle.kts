@@ -54,11 +54,11 @@ dependencies {
     implementation("androidx.transition:transition:1.5.0")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
-    // Exclude old legacy support to prevent conflict
+    // Exclude old legacy support to prevent conflict - FIXED SYNTAX HERE
     configurations.all {
         resolutionStrategy {
-            exclude group: "androidx.legacy"
-            exclude group: "com.android.support"
+            exclude(group = "androidx.legacy")
+            exclude(group = "com.android.support")
         }
     }
 }
