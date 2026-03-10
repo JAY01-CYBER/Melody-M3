@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm") 
+    kotlin("jvm")
+    id("com.google.dagger.hilt.android")
 }
 
 java {
@@ -8,7 +9,15 @@ java {
 }
 
 dependencies {
-    // Add only pure Kotlin deps
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")  // if coroutines used
+    // Project dependencies
+    implementation(project(":data"))
+    
+    // Hilt Core
+    implementation("com.google.dagger:hilt-core:2.52")
+    
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    
+    // Testing
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
