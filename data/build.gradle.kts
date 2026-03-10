@@ -26,9 +26,10 @@ android {
 }
 
 dependencies {
+    // Connect to Domain module
     implementation(project(":domain"))
 
-    // Hilt Dependency Injection
+    // Hilt (Dependency Injection)
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
 
@@ -49,5 +50,4 @@ dependencies {
 
     // Android Core
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
 }
