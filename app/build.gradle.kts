@@ -35,21 +35,20 @@ android {
 }
 
 dependencies {
-    // Module Connections
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":ui"))
 
-    // Hilt (Dependency Injection)
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
-    implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
-    // Compose BOM
+    // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
