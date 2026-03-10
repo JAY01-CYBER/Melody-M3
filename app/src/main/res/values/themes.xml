@@ -1,18 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme using Material3 -->
+    <!-- Main Application Theme -->
     <style name="Theme.MelodyM3" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Main system colors -->
+        <!-- Define primary and secondary colors using system defaults for stability -->
         <item name="colorPrimary">@android:color/holo_blue_dark</item>
         <item name="colorSecondary">@android:color/holo_blue_light</item>
         
-        <!-- Status bar and navigation bar settings -->
+        <!-- UI System Bar Configuration -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <!-- Support for components expecting MaterialComponents attributes -->
+    <!-- Compatibility layer for legacy Material Components -->
     <style name="Theme.MaterialComponents.DayNight.DarkActionBar" parent="Theme.Material3.DayNight">
-        <!-- Automatically mapped -->
+        <!-- Maps old styles to the new Material3 theme to prevent build crashes -->
     </style>
 </resources>
