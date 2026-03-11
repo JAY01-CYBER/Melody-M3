@@ -1,16 +1,21 @@
 package com.melodym3.domain.model
 
+enum class ItemType {
+    SONG, 
+    ALBUM, 
+    ARTIST, 
+    PLAYLIST
+}
+
 data class MusicItem(
     val id: String,
     val title: String,
     val artist: String,
-    val imageUrl: String,
+    val duration: Long,
     val url: String,
-    val duration: String
+    val imageUrl: String = "",
+    val subtitle: String = "",
+    val type: ItemType = ItemType.SONG
 ) {
-    val subtitle: String get() = artist
-}
-
-enum class ItemType {
-    SONG, ALBUM, ARTIST, PLAYLIST
+    val displaySubtitle: String get() = if (subtitle.isNotBlank()) subtitle else artist
 }
