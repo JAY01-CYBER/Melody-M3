@@ -13,6 +13,12 @@ interface MusicRepository {
      */
     suspend fun getHomeRecommendations(): List<MusicItem>
 
-    // suspend fun searchMusic(query: String): List<MusicItem>
+    /**
+     * Searches for music items based on query string.
+     * @param query Search term
+     * @return List of matching MusicItem
+     */
+    suspend fun searchMusic(query: String): List<MusicItem>   // ✅ Uncomment this!
+
     // suspend fun getAlbumDetails(id: String): AlbumDetails
 }
