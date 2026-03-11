@@ -2,9 +2,11 @@ package com.melodym3.ui.screens.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.melodym3.data.repository.FirebaseLibraryRepository
 import com.melodym3.domain.model.LikedTrack
+import com.melodym3.domain.model.MusicItem
 import com.melodym3.domain.playback.PlaybackController
+import com.melodym3.domain.repository.LibraryRepository
+import com.melodym3.ui.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +14,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// UI State data class
 data class LibraryUiState(
     val likedTracks: List<LikedTrack> = emptyList(),
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val libraryRepository: FirebaseLibraryRepository,
+    private val libraryRepository: LibraryRepository,
     private val playbackController: PlaybackController
 ) : ViewModel() {
 
@@ -28,7 +31,6 @@ class LibraryViewModel @Inject constructor(
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
 
     init {
-        // Start listening to the liked tracks stream when the ViewModel is created
         loadLikedTracks()
     }
 
@@ -36,34 +38,57 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             
-            // NOTE: In a production app, the repository should expose a proper
-            // flow/snapshot listener that emits updates in real-time.
             try {
-                // Since our repository currently uses a simple flow for initial fetch (Step 19), 
-                // we observe it here.
-                libraryRepository.getLikedTracks().collect { tracks ->
-                    _uiState.value = _uiState.value.copy(
-                        likedTracks = tracks,
-                        isLoading = false
-                    )
-                }
+                val tracks = libraryRepository.getLikedTracks()
+                _uiState.value = _uiState.value.copy(
+                    likedTracks = tracks,
+                    isLoading = false
+                )
             } catch (e: Exception) {
-                 _uiState.value = _uiState.value.copy(
+                _uiState.value = _uiState.value.copy(
                     errorMessage = "Failed to load library: ${e.message}",
                     isLoading = false
                 )
+                SnackbarManager.showError("Failed to load library: ${e.message}", viewModelScope)
             }
         }
     }
-    
-    // Functionality to remove a track will be added here
+
     fun removeTrack(track: LikedTrack) {
-        // Placeholder for removal logic
+        viewModelScope.launch {
+            try {
+                libraryRepository.removeFromLiked(track.id)
+                // Refresh the list
+                loadLikedTracks()
+                SnackbarManager.showMessage("Removed from library", viewModelScope)
+            } catch (e: Exception) {
+                SnackbarManager.showError("Failed to remove: ${e.message}", viewModelScope)
+            }
+        }
     }
-    
-    // Functionality to play a track from the library
+
     fun playTrack(track: LikedTrack) {
-        // NOTE: A conversion function (LikedTrack -> MusicItem) is needed here 
-        // before calling playbackController.play()
+        viewModelScope.launch {
+            try {
+                // Convert LikedTrack to MusicItem
+                val musicItem = MusicItem(
+                    id = track.id,
+                    title = track.title,
+                    artist = track.artist,
+                    duration = track.duration,
+                    url = track.url,
+                    imageUrl = track.imageUrl,
+                    subtitle = track.subtitle
+                )
+                playbackController.play(musicItem)
+                SnackbarManager.showMessage("Now playing: ${track.title}", viewModelScope)
+            } catch (e: Exception) {
+                SnackbarManager.showError("Failed to play: ${e.message}", viewModelScope)
+            }
+        }
+    }
+
+    fun retry() {
+        loadLikedTracks()
     }
 }
