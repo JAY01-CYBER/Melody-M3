@@ -13,8 +13,7 @@ import javax.inject.Inject
 
 data class HomeState(
     val isLoading: Boolean = false,
-    val recommendations: List<MusicItem> = emptyList(),
-    val errorMessage: String? = null
+    val recommendations: List<MusicItem> = emptyList()
 )
 
 @HiltViewModel
@@ -29,34 +28,25 @@ class HomeViewModel @Inject constructor() : ViewModel() {
 
     private fun loadHomeData() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            _state.update { it.copy(isLoading = true) }
             try {
                 val mockItems = listOf(
                     MusicItem(
                         id = "1", 
-                        title = "Trending Now", 
-                        subtitle = "Various Artists", 
-                        imageUrl = "https://via.placeholder.com/150"
+                        title = "Trending Song", 
+                        artist = "English Artist", 
+                        imageUrl = "https://via.placeholder.com/150",
+                        url = "https://example.com/stream",
+                        duration = "03:30"
                     )
                 )
-                
-                _state.update { 
-                    it.copy(
-                        isLoading = false, 
-                        recommendations = mockItems 
-                    ) 
-                }
+                _state.update { it.copy(isLoading = false, recommendations = mockItems) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
-                SnackbarManager.showError(
-                    message = e.message ?: "An unexpected error occurred",
-                    scope = viewModelScope
-                )
+                SnackbarManager.showError(e.message ?: "Unknown Error", viewModelScope)
             }
         }
     }
 
-    fun playItem(item: MusicItem) {
-        // Playback logic here
-    }
+    fun playItem(item: MusicItem) {}
 }
