@@ -18,7 +18,14 @@ interface MusicRepository {
      * @param query Search term
      * @return List of matching MusicItem
      */
-    suspend fun searchMusic(query: String): List<MusicItem>   // ✅ Uncomment this!
+    suspend fun searchMusic(query: String): List<MusicItem>
+
+    /**
+     * Gets the streaming URL for a specific music item.
+     * @param musicId Unique identifier for the music
+     * @return Streaming URL as String
+     */
+    suspend fun getStreamUrl(musicId: String): String
 
     // suspend fun getAlbumDetails(id: String): AlbumDetails
 }
