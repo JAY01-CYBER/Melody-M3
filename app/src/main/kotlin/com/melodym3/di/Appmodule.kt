@@ -41,7 +41,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://your-ytm-proxy-backend.com/api/v1/")
+            .baseUrl("https://example.com/")
             .client(client)
             .addConverterFactory(
                 GsonConverterFactory.create(GsonBuilder().create())
