@@ -4,10 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,10 +18,29 @@ import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.melodym3.service.SnackbarManager
@@ -36,51 +55,50 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// --- 1. Navigation Definitions ---
-sealed class Screen(val route: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val label: String) {
-    object Home : Screen("home", Icons.Filled.Home, "Home")
-    object Explore : Screen("explore", Icons.Filled.Search, "Explore")
-    object Library : Screen("library", Icons.Filled.LibraryMusic, "Library")
+sealed class Screen(
+    val route: String,
+    val icon: ImageVector,
+    val label: String
+) {
+    data object Home : Screen("home", Icons.Filled.Home, "Home")
+    data object Explore : Screen("explore", Icons.Filled.Search, "Explore")
+    data object Library : Screen("library", Icons.Filled.LibraryMusic, "Library")
 }
 
-val items = listOf(Screen.Home, Screen.Explore, Screen.Library)
+private val items = listOf(
+    Screen.Home,
+    Screen.Explore,
+    Screen.Library
+)
 
-// --- 2. Main Activity Entry Point (Hilt Annotation) ---
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    // Inject the SnackbarManager at the activity level (Step 22)
+
     @Inject
-    lateinit var snackbarManager: SnackbarManager 
+    lateinit var snackbarManager: SnackbarManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Pass the injected manager to the composable function
-            MelodyM3App(snackbarManager = snackbarManager) 
+            MelodyM3App(snackbarManager = snackbarManager)
         }
     }
 }
 
-// --- 3. Main Application Composable ---
 @Composable
-fun MelodyM3App(snackbarManager: SnackbarManager) { 
-    // State for bottom navigation
+fun MelodyM3App(snackbarManager: SnackbarManager) {
     var selectedItem by remember { mutableIntStateOf(0) }
-    // State for showing the full screen modal player
-    var isPlayerScreenVisible by remember { mutableStateOf(false) } 
+    var isPlayerVisible by remember { mutableStateOf(false) }
 
-    // Inject and observe the HomeViewModel (for initial data/playback setup)
     val homeViewModel: HomeViewModel = hiltViewModel()
-    val homeUiState = homeViewModel.uiState 
-    
-    // Snackbar Host State (Step 22)
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
+    val homeUiState = homeViewModel.uiState
 
-    // Listener for messages coming from the ViewModel/Repository layer (Step 22)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(snackbarManager) {
         snackbarManager.messages.collect { message ->
-            coroutineScope.launch {
+            scope.launch {
                 snackbarHostState.showSnackbar(message)
             }
         }
@@ -88,117 +106,124 @@ fun MelodyM3App(snackbarManager: SnackbarManager) {
 
     MelodyM3Theme {
         Scaffold(
-            // Set up the SnackbarHost
-            snackbarHost = { SnackbarHost(snackbarHostState) }, 
-            
-            // Bottom bar contains the Now Playing bar AND the Navigation Bar
-            bottomBar = { 
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            bottomBar = {
                 Column {
-                    // Mini-Player: Click opens the full player modal
-                    NowPlayingBar(onClick = { isPlayerScreenVisible = true }) 
-                    AppNavigationBar(selectedItem) { index -> selectedItem = index } 
+                    MiniPlayerBar(
+                        onOpenPlayer = { isPlayerVisible = true }
+                    )
+                    BottomNavBar(
+                        selectedItem = selectedItem,
+                        onItemSelected = { selectedItem = it }
+                    )
                 }
             }
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
-                // Handle screen navigation
                 when (items[selectedItem]) {
                     Screen.Home -> HomeScreen(
                         recommendations = homeUiState.recommendations,
                         isLoading = homeUiState.isLoading,
                         errorMessage = homeUiState.errorMessage,
-                        onItemClick = { item -> 
+                        onItemClick = { item ->
                             homeViewModel.playItem(item)
-                            isPlayerScreenVisible = true // Start playback and open player
+                            isPlayerVisible = true
                         }
                     )
-                    Screen.Explore -> ExploreScreen() 
-                    Screen.Library -> LibraryScreen() 
+
+                    Screen.Explore -> ExploreScreen()
+
+                    Screen.Library -> LibraryScreen()
                 }
-            }
-            
-            // 4. Full Screen Player Modal (Displayed over all content)
-            if (isPlayerScreenVisible) {
-                PlayerScreen(onDismiss = { isPlayerScreenVisible = false }) 
+
+                if (isPlayerVisible) {
+                    PlayerScreen(
+                        onDismiss = { isPlayerVisible = false }
+                    )
+                }
             }
         }
     }
 }
 
-// --- 5. Navigation Bar Composable ---
 @Composable
-fun AppNavigationBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
+private fun BottomNavBar(
+    selectedItem: Int,
+    onItemSelected: (Int) -> Unit
+) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) },
                 selected = selectedItem == index,
-                onClick = { onItemSelected(index) }
+                onClick = { onItemSelected(index) },
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label
+                    )
+                },
+                label = { Text(item.label) }
             )
         }
     }
 }
 
-// --- 6. Now Playing Bar Component (State-driven Mini-Player) ---
 @Composable
-fun NowPlayingBar(onClick: () -> Unit) { 
-    // Inject the PlayerViewModel to get real-time state
+private fun MiniPlayerBar(
+    onOpenPlayer: () -> Unit
+) {
     val playerViewModel: PlayerViewModel = hiltViewModel()
-    val state by playerViewModel.playerState.collectAsState()
-    
-    // Mini-player only appears if a song is loaded (current item is not null)
-    if (state.currentItem == null) {
-        return 
-    }
+    val playerState by playerViewModel.playerState.collectAsState()
+
+    val currentItem = playerState.currentItem ?: return
 
     Surface(
-        shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 3.dp,
+        shadowElevation = 3.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                // Clicking the entire row opens the full player
-                .clickable { onClick() } 
+                .clickable { onOpenPlayer() }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // 1. Song Info (Text)
             Column(
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
             ) {
                 Text(
-                    state.currentItem?.title ?: "Unknown Track",
+                    text = currentItem.title,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    state.currentItem?.subtitle ?: "Unknown Artist",
+                    text = currentItem.subtitle ?: "",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            
-            // 2. Play/Pause Button
+
             IconButton(
-                onClick = { 
-                    playerViewModel.togglePlaybackFromMiniPlayer()
-                }
+                onClick = { playerViewModel.togglePlaybackFromMiniPlayer() }
             ) {
                 Icon(
-                    imageVector = if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (state.isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(36.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    imageVector = if (playerState.isPlaying) {
+                        Icons.Filled.Pause
+                    } else {
+                        Icons.Filled.PlayArrow
+                    },
+                    contentDescription = if (playerState.isPlaying) "Pause" else "Play",
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
